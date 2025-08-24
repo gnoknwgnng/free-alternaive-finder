@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CrewAI Free Alternatives Finder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f7fa;
+    }
+    h2 {
+      color: #333;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .result-section {
+      background: white;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .alt-item {
+      margin-bottom: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 10px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+    }
+    th {
+      background: #eaeaea;
+    }
+    ul {
+      margin-top: 5px;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .highlight {
+      padding: 10px;
+      background: #e6f7e6;
+      border-left: 4px solid #28a745;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Find Free Alternative Tool</h2>
+
+  <input type="text" id="query" placeholder="Enter query (e.g. Find free alternative)">
+  <input type="text" id="paid_tool" placeholder="Enter tool (e.g. Photoshop)">
+  <button onclick="runWorkflow()">Submit</button>
+
+  <div id="output"></div>
+
+  <script>
+    async function runWorkflow() {
+      const query = document.getElementById("query").value;
+      const paid_tool = document.getElementById("paid_tool").value;
+      const outputDiv = document.getElementById("output");
+
+      outputDiv.innerHTML = "<p>Loading...</p>";
+
+      const response = await fetch("http://127.0.0.1:8000/run_workflow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, paid_tool })
+      });
+
+      const data = await response.json();
+      const result = data.final_result ? JSON.parse(data.final_result.replace(/```json|```/g, "")) : {};
+
+      let html = "";
+
+      if (result.originalTool) {
+        html += `<div class="result-section"><h3>Original Tool</h3><p>${result.originalTool}</p></div>`;
+      }
+
+      if (result.freeAlternative) {
+        html += `<div class="result-section"><h3>Free Alternatives</h3>`;
+        result.freeAlternative.forEach(alt => {
+          html += `<div class="alt-item"><strong>${alt.name}</strong>: ${alt.description}</div>`;
+        });
+        html += `</div>`;
+      }
+
+      if (result.comparisonTable) {
+        html += `<div class="result-section"><h3>Comparison Table</h3><table><tr>`;
+        Object.keys(result.comparisonTable[0]).forEach(col => {
+          html += `<th>${col}</th>`;
+        });
+        html += `</tr>`;
+        result.comparisonTable.forEach(row => {
+          html += `<tr>`;
+          Object.values(row).forEach(val => {
+            html += `<td>${val}</td>`;
+          });
+          html += `</tr>`;
+        });
+        html += `</table></div>`;
+      }
+
+      if (result.differences) {
+        html += `<div class="result-section"><h3>Differences</h3><p>${result.differences}</p></div>`;
+      }
+
+      if (result.youTubeTutorial) {
+        html += `<div class="result-section"><h3>YouTube Tutorial</h3>`;
+        if (Array.isArray(result.youTubeTutorial)) {
+          result.youTubeTutorial.forEach(link => {
+            html += `<p><a href="${link}" target="_blank">${link}</a></p>`;
+          });
+        } else {
+          html += `<p><a href="${result.youTubeTutorial}" target="_blank">${result.youTubeTutorial}</a></p>`;
+        }
+        html += `</div>`;
+      }
+
+      if (result.systemRequirements) {
+        html += `<div class="result-section"><h3>System Requirements</h3><ul>`;
+        result.systemRequirements.forEach(req => {
+          html += `<li>${req}</li>`;
+        });
+        html += `</ul></div>`;
+      }
+
+      if (result.communitySupportAndLearningResources) {
+        html += `<div class="result-section"><h3>Community & Learning Resources</h3><ul>`;
+        result.communitySupportAndLearningResources.forEach(link => {
+          html += `<li><a href="${link}" target="_blank">${link}</a></li>`;
+        });
+        html += `</ul></div>`;
+      }
+
+      if (result.quickVerdict) {
+        html += `<div class="highlight"><strong>Quick Verdict:</strong> ${result.quickVerdict}</div>`;
+      }
+
+      outputDiv.innerHTML = html || "<p>No result found.</p>";
+    }
+  </script>
+</body>
+</html>
